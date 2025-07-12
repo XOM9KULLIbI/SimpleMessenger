@@ -3,14 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/chat_bg_gradient">
+    android:background="@drawable/chat_bg_gradient"
+    android:fitsSystemWindows="true">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/messagesRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:padding="8dp"
+        android:padding="@dimen/spacing_medium"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/inputCard"
         app:layout_constraintStart_toStartOf="parent"
@@ -29,9 +32,9 @@
         android:id="@+id/inputCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        app:cardCornerRadius="32dp"
-        app:cardElevation="12dp"
+        android:layout_margin="@dimen/spacing_medium"
+        app:cardCornerRadius="@dimen/message_card_radius"
+        app:cardElevation="@dimen/message_card_elevation"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -40,38 +43,47 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="12dp"
-            android:gravity="center_vertical">
+            android:padding="@dimen/input_padding"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/input_height">
 
             <EditText
                 android:id="@+id/messageEdit"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:minHeight="40dp"
                 android:hint="Введите сообщение"
                 android:background="@android:color/transparent"
-                android:textSize="16sp"
-                android:padding="8dp"/>
+                android:textSize="@dimen/text_medium"
+                android:padding="@dimen/spacing_medium"
+                android:maxLines="4"
+                android:scrollbars="vertical"
+                android:gravity="top|start"/>
 
             <ImageButton
                 android:id="@+id/attachButton"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="@dimen/input_height"
+                android:layout_height="@dimen/input_height"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_message"
                 android:contentDescription="Прикрепить файл"
                 android:tint="@color/purple_500"
-                android:layout_marginStart="6dp"/>
+                android:layout_marginStart="@dimen/spacing_small"
+                android:scaleType="centerInside"
+                android:padding="@dimen/spacing_small"/>
 
             <ImageButton
                 android:id="@+id/sendButton"
-                android:layout_width="54dp"
-                android:layout_height="54dp"
+                android:layout_width="@dimen/input_height"
+                android:layout_height="@dimen/input_height"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@android:drawable/ic_menu_send"
                 android:contentDescription="Отправить"
                 android:tint="@color/purple_500"
-                android:layout_marginStart="6dp"/>
+                android:layout_marginStart="@dimen/spacing_small"
+                android:scaleType="centerInside"
+                android:padding="@dimen/spacing_small"/>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Увеличенные отступы для планшетов -->
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_large">24dp</dimen>
+    
+    <!-- Увеличенный размер аватара -->
+    <dimen name="avatar_size">56dp</dimen>
+    
+    <!-- Увеличенные размеры карточек -->
+    <dimen name="message_card_radius">24dp</dimen>
+    <dimen name="message_card_elevation">6dp</dimen>
+    
+    <!-- Увеличенные размеры ввода -->
+    <dimen name="input_padding">16dp</dimen>
+    <dimen name="input_height">64dp</dimen>
+    
+    <!-- Увеличенные размеры текста -->
+    <dimen name="text_small">14sp</dimen>
+    <dimen name="text_medium">18sp</dimen>
+    <dimen name="text_large">22sp</dimen>
+</resources> 
