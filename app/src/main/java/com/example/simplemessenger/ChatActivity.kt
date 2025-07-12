@@ -19,6 +19,21 @@ import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+<<<<<<< Updated upstream
+=======
+import android.content.Intent
+import androidx.lifecycle.ViewModelProvider
+import android.net.Uri
+import android.provider.OpenableColumns
+import androidx.activity.result.ActivityResultLauncher
+import okhttp3.MultipartBody
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.simplemessenger.ui.Message
+import com.example.simplemessenger.ui.MessageAdapter
+import android.util.Log
+import androidx.activity.viewModels
+>>>>>>> Stashed changes
 
 class ChatActivity : AppCompatActivity() {
     private val client = OkHttpClient()
@@ -30,9 +45,24 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var recipient: String
     private lateinit var messagesView: TextView
     private lateinit var chatFile: File
+<<<<<<< Updated upstream
 
     private val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
 
+=======
+    private val viewModel: MainViewModel by viewModels()
+
+    private lateinit var messagesRecyclerView: RecyclerView
+    private var messageList: MutableList<Message> = mutableListOf()
+    private lateinit var messageAdapter: MessageAdapter
+
+    private val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+
+    companion object {
+        const val ACTION_CHAT_LIST_UPDATED = "com.example.simplemessenger.ACTION_CHAT_LIST_UPDATED"
+    }
+
+>>>>>>> Stashed changes
     // Регистрация запроса разрешения
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -42,20 +72,49 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
+    private lateinit var pickMediaLauncher: ActivityResultLauncher<String>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
+<<<<<<< Updated upstream
 
         userName = intent.getStringExtra("userName")!!
         recipient = intent.getStringExtra("recipient")!!
+=======
+        // Safe intent extra handling
+        userName = intent.getStringExtra("userName") ?: ""
+        recipient = intent.getStringExtra("recipient") ?: ""
+        if (userName.isEmpty() || recipient.isEmpty()) {
+            Toast.makeText(this, "User or recipient missing", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+>>>>>>> Stashed changes
         title = "Чат с $recipient"
 
         val messageEdit = findViewById<EditText>(R.id.messageEdit)
-        val sendButton = findViewById<Button>(R.id.sendButton)
-        messagesView = findViewById(R.id.messagesView)
+        val sendButton = findViewById<ImageButton>(R.id.sendButton)
+        val attachButton = findViewById<ImageButton>(R.id.attachButton)
+        messagesRecyclerView = findViewById(R.id.messagesRecyclerView)
+
+        messageAdapter = MessageAdapter(this, messageList, userName, serverUrl)
+        messagesRecyclerView.layoutManager = LinearLayoutManager(this)
+        messagesRecyclerView.adapter = messageAdapter
 
         val chatFileName = "chat_${userName}_$recipient.json"
         chatFile = File(filesDir, chatFileName)
+
+        // Register media picker
+        pickMediaLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            if (uri != null) {
+                sendMedia(uri)
+            }
+        }
+
+        attachButton.setOnClickListener {
+            pickMediaLauncher.launch("image/* video/*")
+        }
 
         sendButton.setOnClickListener {
             val text = messageEdit.text.toString()
@@ -121,6 +180,55 @@ class ChatActivity : AppCompatActivity() {
         })
     }
 
+    private fun sendMedia(uri: Uri) {
+        val contentResolver = contentResolver
+        val mimeType = contentResolver.getType(uri) ?: "application/octet-stream"
+        val fileName = getFileName(uri)
+        contentResolver.openInputStream(uri)?.use { inputStream ->
+            val fileBytes = inputStream.readBytes()
+            val requestBody = MultipartBody.Builder().setType(MultipartBody.FORM)
+                .addFormDataPart("from", userName)
+                .addFormDataPart("to", recipient)
+                .addFormDataPart("file", fileName, fileBytes.toRequestBody(mimeType.toMediaTypeOrNull()))
+                .build()
+            val request = Request.Builder()
+                .url("$serverUrl/send_media")
+                .post(requestBody)
+                .build()
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    runOnUiThread {
+                        Toast.makeText(this@ChatActivity, "Ошибка отправки файла: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                override fun onResponse(call: Call, response: Response) {
+                    runOnUiThread {
+                        if (response.isSuccessful) {
+                            Toast.makeText(this@ChatActivity, "Файл отправлен", Toast.LENGTH_SHORT).show()
+                            fetchMessages()
+                        } else {
+                            Toast.makeText(this@ChatActivity, "Ошибка: ${response.code}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            })
+        } ?: run {
+            Toast.makeText(this, "Не удалось открыть файл", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun getFileName(uri: Uri): String {
+        var name = "file"
+        val cursor = contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (nameIndex >= 0 && it.moveToFirst()) {
+                name = it.getString(nameIndex)
+            }
+        }
+        return name
+    }
+
     private fun fetchMessages() {
         val request = Request.Builder()
             .url("$serverUrl/messages?from=$userName&to=$recipient")
@@ -129,7 +237,7 @@ class ChatActivity : AppCompatActivity() {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    messagesView.text = "Ошибка подключения"
+                    // Optionally show error in UI
                 }
             }
 
@@ -147,8 +255,8 @@ class ChatActivity : AppCompatActivity() {
                 writeLocalMessages(existing)
 
                 val decryptedArr = decryptMessages(existing)
+                updateMessageList(decryptedArr)
                 runOnUiThread {
-                    messagesView.text = formatMessages(decryptedArr)
                     if (decryptedArr.length() > lastMessageCount) {
                         val newMessages = decryptedArr.length() - lastMessageCount
                         showNotification(newMessages)
@@ -181,8 +289,30 @@ class ChatActivity : AppCompatActivity() {
     private fun loadLocalMessages() {
         val arr = readLocalMessages()
         val decryptedArr = decryptMessages(arr)
-        messagesView.text = formatMessages(decryptedArr)
+        updateMessageList(decryptedArr)
         lastMessageCount = decryptedArr.length()
+    }
+
+    private fun updateMessageList(arr: org.json.JSONArray) {
+        messageList.clear()
+        for (i in 0 until arr.length()) {
+            val m = arr.getJSONObject(i)
+            val type = m.optString("type", "text")
+            val mediaUrl = m.optString("mediaUrl", null)
+            messageList.add(
+                Message(
+                    from = m.getString("from"),
+                    text = m.optString("text", null),
+                    date = m.optString("date", null),
+                    type = type,
+                    mediaUrl = mediaUrl
+                )
+            )
+        }
+        runOnUiThread {
+            messageAdapter.notifyDataSetChanged()
+            messagesRecyclerView.scrollToPosition(messageList.size - 1)
+        }
     }
 
     private fun readLocalMessages(): JSONArray {
@@ -209,16 +339,28 @@ class ChatActivity : AppCompatActivity() {
         val decrypted = JSONArray()
         for (i in 0 until arr.length()) {
             val msg = arr.getJSONObject(i)
-            val encryptedText = msg.getString("text")
-            val decryptedText = try {
-                CryptoHelper.decrypt(encryptedText)
-            } catch (e: Exception) {
-                "[ошибка расшифровки]"
-            }
+            val type = msg.optString("type", "text")
             val newMsg = JSONObject()
-            newMsg.put("from", msg.getString("from"))
-            newMsg.put("text", decryptedText)
+            newMsg.put("from", msg.optString("from", "unknown"))
             newMsg.put("date", msg.optString("date", ""))
+            if (type == "text") {
+                val encryptedText = msg.optString("text", null)
+                val decryptedText = if (encryptedText != null) {
+                    try {
+                        CryptoHelper.decrypt(encryptedText)
+                    } catch (e: Exception) {
+                        Log.e("CryptoHelper", "Decryption failed", e)
+                        "[ошибка расшифровки]"
+                    }
+                } else {
+                    ""
+                }
+                newMsg.put("text", decryptedText)
+            } else {
+                newMsg.put("type", type)
+                newMsg.put("mediaUrl", msg.optString("mediaUrl", null))
+                newMsg.put("text", msg.optString("text", ""))
+            }
             decrypted.put(newMsg)
         }
         return decrypted
@@ -250,4 +392,6 @@ class ChatActivity : AppCompatActivity() {
         }
         return false
     }
+
+    // TODO: Consider adopting ViewBinding for safer UI code
 }
