@@ -22,11 +22,22 @@ class MainActivity : AppCompatActivity() {
     private lateinit var userName: String
     private lateinit var prefs: SharedPreferences
     private lateinit var listView: ListView
+<<<<<<< Updated upstream
     private val chatList = mutableSetOf<String>()  // хранит всех собеседников
+=======
+    private lateinit var adapter: ArrayAdapter<String>
+    private lateinit var prefs: SharedPreferences
+    private var userName: String = ""
+>>>>>>> Stashed changes
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        prefs = getSharedPreferences("simplemessenger_prefs", Context.MODE_PRIVATE)
+        userName = prefs.getString("username", "") ?: ""
+        if (userName.isEmpty()) {
+            askForName()
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Messages"
@@ -166,4 +177,6 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("recipient", recipient)
         startActivity(intent)
     }
+
+    // TODO: Consider adopting ViewBinding for safer UI code
 }
