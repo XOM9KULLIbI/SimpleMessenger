@@ -5,5 +5,6 @@ data class Message(
     val text: String? = null,
     val date: String? = null,
     val type: String = "text", // "text", "image", "video"
-    val mediaUrl: String? = null
+    val mediaUrl: String? = null,
+    val read: Boolean? = null
 ) 

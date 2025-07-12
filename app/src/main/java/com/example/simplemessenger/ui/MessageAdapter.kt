@@ -16,6 +16,7 @@ import android.view.animation.AlphaAnimation
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import com.example.simplemessenger.MediaDownloadHelper
 
 class MessageAdapter(private val context: Context, private val messages: List<Message>, private val currentUser: String, private val serverUrl: String) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     companion object {
@@ -58,35 +59,53 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
                 holder.bind(message, currentUser, context)
                 // Alignment
                 val params = holder.itemView.layoutParams as RecyclerView.LayoutParams
-                params.marginStart = if (isSent) 80 else 0
-                params.marginEnd = if (isSent) 0 else 80
+                if (isSent) {
+                    params.marginStart = 80
+                    params.marginEnd = 0
+                    holder.itemView.layoutDirection = View.LAYOUT_DIRECTION_RTL
+                } else {
+                    params.marginStart = 0
+                    params.marginEnd = 80
+                    holder.itemView.layoutDirection = View.LAYOUT_DIRECTION_LTR
+                }
                 holder.itemView.layoutParams = params
-                holder.itemView.layoutDirection = if (isSent) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
                 // Animation
                 val anim = AlphaAnimation(0.0f, 1.0f)
-                anim.duration = 400
+                anim.duration = 300
                 holder.itemView.startAnimation(anim)
             }
             is ImageViewHolder -> {
                 holder.bind(message, currentUser, context, serverUrl)
                 val params = holder.itemView.layoutParams as RecyclerView.LayoutParams
-                params.marginStart = if (isSent) 80 else 0
-                params.marginEnd = if (isSent) 0 else 80
+                if (isSent) {
+                    params.marginStart = 80
+                    params.marginEnd = 0
+                    holder.itemView.layoutDirection = View.LAYOUT_DIRECTION_RTL
+                } else {
+                    params.marginStart = 0
+                    params.marginEnd = 80
+                    holder.itemView.layoutDirection = View.LAYOUT_DIRECTION_LTR
+                }
                 holder.itemView.layoutParams = params
-                holder.itemView.layoutDirection = if (isSent) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
                 val anim = AlphaAnimation(0.0f, 1.0f)
-                anim.duration = 400
+                anim.duration = 300
                 holder.itemView.startAnimation(anim)
             }
             is VideoViewHolder -> {
                 holder.bind(message, currentUser, context, serverUrl)
                 val params = holder.itemView.layoutParams as RecyclerView.LayoutParams
-                params.marginStart = if (isSent) 80 else 0
-                params.marginEnd = if (isSent) 0 else 80
+                if (isSent) {
+                    params.marginStart = 80
+                    params.marginEnd = 0
+                    holder.itemView.layoutDirection = View.LAYOUT_DIRECTION_RTL
+                } else {
+                    params.marginStart = 0
+                    params.marginEnd = 80
+                    holder.itemView.layoutDirection = View.LAYOUT_DIRECTION_LTR
+                }
                 holder.itemView.layoutParams = params
-                holder.itemView.layoutDirection = if (isSent) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
                 val anim = AlphaAnimation(0.0f, 1.0f)
-                anim.duration = 400
+                anim.duration = 300
                 holder.itemView.startAnimation(anim)
             }
         }
@@ -101,6 +120,7 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
         private val avatarView: ImageView = itemView.findViewById(R.id.avatarView)
         private val avatarInitials: TextView = itemView.findViewById(R.id.avatarInitials)
         private val messageCard: View = itemView.findViewById(R.id.messageCard)
+        private val readStatusView: TextView? = itemView.findViewById(R.id.readStatusView)
         fun bind(message: Message, currentUser: String, context: Context) {
             textView.text = message.text
             authorView.text = message.from
@@ -113,6 +133,13 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
             val isSent = message.from == currentUser
             val bgColor = if (isSent) R.color.message_sent_bg else R.color.message_received_bg
             messageCard.setBackgroundTintList(ContextCompat.getColorStateList(context, bgColor))
+            // Галочки
+            if (isSent && readStatusView != null) {
+                readStatusView.visibility = View.VISIBLE
+                readStatusView.text = if (message.read == true) "✓✓" else "✓"
+            } else if (readStatusView != null) {
+                readStatusView.visibility = View.GONE
+            }
         }
         private fun formatDate(dateStr: String?): String {
             if (dateStr.isNullOrEmpty()) return ""
@@ -130,11 +157,11 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
             return when {
                 msgDate.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                 msgDate.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) ->
-                    "Today, " + SimpleDateFormat("HH:mm").format(msgDate.time)
+                    "Сегодня, " + SimpleDateFormat("HH:mm").format(msgDate.time)
                 msgDate.get(Calendar.YEAR) == yesterday.get(Calendar.YEAR) &&
                 msgDate.get(Calendar.DAY_OF_YEAR) == yesterday.get(Calendar.DAY_OF_YEAR) ->
-                    "Yesterday, " + SimpleDateFormat("HH:mm").format(msgDate.time)
-                else -> dateStr
+                    "Вчера, " + SimpleDateFormat("HH:mm").format(msgDate.time)
+                else -> SimpleDateFormat("dd.MM HH:mm").format(msgDate.time)
             }
         }
     }
@@ -145,16 +172,59 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
         private val dateView: TextView = itemView.findViewById(R.id.dateMessage)
         private val avatarView: ImageView = itemView.findViewById(R.id.avatarView)
         private val messageCard: View = itemView.findViewById(R.id.messageCard)
+        private val downloadButton: ImageView = itemView.findViewById(R.id.downloadImageButton)
+        private val readStatusView: TextView? = itemView.findViewById(R.id.readStatusView)
         fun bind(message: Message, currentUser: String, context: Context, serverUrl: String) {
             val mediaUrl = message.mediaUrl
             val fullUrl = if (mediaUrl != null && !mediaUrl.startsWith("http")) "$serverUrl/$mediaUrl" else mediaUrl
             Glide.with(context).load(fullUrl).into(imageView)
             authorView.text = message.from
-            dateView.text = message.date
+            dateView.text = formatDate(message.date)
             avatarView.setImageResource(R.drawable.ic_avatar_placeholder)
             val isSent = message.from == currentUser
             val bgColor = if (isSent) R.color.message_sent_bg else R.color.message_received_bg
             messageCard.setBackgroundTintList(ContextCompat.getColorStateList(context, bgColor))
+            // Галочки
+            if (isSent && readStatusView != null) {
+                readStatusView.visibility = View.VISIBLE
+                readStatusView.text = if (message.read == true) "✓✓" else "✓"
+            } else if (readStatusView != null) {
+                readStatusView.visibility = View.GONE
+            }
+            // Открытие в полноэкранном режиме
+            imageView.setOnClickListener {
+                val intent = android.content.Intent(context, com.example.simplemessenger.FullscreenMediaActivity::class.java)
+                intent.putExtra("media_url", fullUrl)
+                intent.putExtra("media_type", "image")
+                context.startActivity(intent)
+            }
+            // Скачивание
+            downloadButton.setOnClickListener {
+                MediaDownloadHelper.downloadFile(context, fullUrl, "image")
+            }
+        }
+        private fun formatDate(dateStr: String?): String {
+            if (dateStr.isNullOrEmpty()) return ""
+            val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm")
+            val now = Calendar.getInstance()
+            val msgDate = Calendar.getInstance()
+            try {
+                msgDate.time = sdf.parse(dateStr) ?: Date()
+            } catch (e: Exception) {
+                return dateStr
+            }
+            val today = Calendar.getInstance()
+            val yesterday = Calendar.getInstance()
+            yesterday.add(Calendar.DATE, -1)
+            return when {
+                msgDate.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                msgDate.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) ->
+                    "Сегодня, " + SimpleDateFormat("HH:mm").format(msgDate.time)
+                msgDate.get(Calendar.YEAR) == yesterday.get(Calendar.YEAR) &&
+                msgDate.get(Calendar.DAY_OF_YEAR) == yesterday.get(Calendar.DAY_OF_YEAR) ->
+                    "Вчера, " + SimpleDateFormat("HH:mm").format(msgDate.time)
+                else -> SimpleDateFormat("dd.MM HH:mm").format(msgDate.time)
+            }
         }
     }
 
@@ -164,17 +234,60 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
         private val dateView: TextView = itemView.findViewById(R.id.dateMessage)
         private val avatarView: ImageView = itemView.findViewById(R.id.avatarView)
         private val messageCard: View = itemView.findViewById(R.id.messageCard)
+        private val downloadButton: ImageView = itemView.findViewById(R.id.downloadVideoButton)
+        private val readStatusView: TextView? = itemView.findViewById(R.id.readStatusView)
         fun bind(message: Message, currentUser: String, context: Context, serverUrl: String) {
             val mediaUrl = message.mediaUrl
             val fullUrl = if (mediaUrl != null && !mediaUrl.startsWith("http")) "$serverUrl/$mediaUrl" else mediaUrl
             videoView.setVideoPath(fullUrl)
             videoView.seekTo(100)
             authorView.text = message.from
-            dateView.text = message.date
+            dateView.text = formatDate(message.date)
             avatarView.setImageResource(R.drawable.ic_avatar_placeholder)
             val isSent = message.from == currentUser
             val bgColor = if (isSent) R.color.message_sent_bg else R.color.message_received_bg
             messageCard.setBackgroundTintList(ContextCompat.getColorStateList(context, bgColor))
+            // Галочки
+            if (isSent && readStatusView != null) {
+                readStatusView.visibility = View.VISIBLE
+                readStatusView.text = if (message.read == true) "✓✓" else "✓"
+            } else if (readStatusView != null) {
+                readStatusView.visibility = View.GONE
+            }
+            // Открытие в полноэкранном режиме
+            videoView.setOnClickListener {
+                val intent = android.content.Intent(context, com.example.simplemessenger.FullscreenMediaActivity::class.java)
+                intent.putExtra("media_url", fullUrl)
+                intent.putExtra("media_type", "video")
+                context.startActivity(intent)
+            }
+            // Скачивание
+            downloadButton.setOnClickListener {
+                MediaDownloadHelper.downloadFile(context, fullUrl, "video")
+            }
+        }
+        private fun formatDate(dateStr: String?): String {
+            if (dateStr.isNullOrEmpty()) return ""
+            val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm")
+            val now = Calendar.getInstance()
+            val msgDate = Calendar.getInstance()
+            try {
+                msgDate.time = sdf.parse(dateStr) ?: Date()
+            } catch (e: Exception) {
+                return dateStr
+            }
+            val today = Calendar.getInstance()
+            val yesterday = Calendar.getInstance()
+            yesterday.add(Calendar.DATE, -1)
+            return when {
+                msgDate.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                msgDate.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) ->
+                    "Сегодня, " + SimpleDateFormat("HH:mm").format(msgDate.time)
+                msgDate.get(Calendar.YEAR) == yesterday.get(Calendar.YEAR) &&
+                msgDate.get(Calendar.DAY_OF_YEAR) == yesterday.get(Calendar.DAY_OF_YEAR) ->
+                    "Вчера, " + SimpleDateFormat("HH:mm").format(msgDate.time)
+                else -> SimpleDateFormat("dd.MM HH:mm").format(msgDate.time)
+            }
         }
     }
 } 

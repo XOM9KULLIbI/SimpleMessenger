@@ -19,8 +19,7 @@ import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
-<<<<<<< Updated upstream
-=======
+
 import android.content.Intent
 import androidx.lifecycle.ViewModelProvider
 import android.net.Uri
@@ -33,7 +32,8 @@ import com.example.simplemessenger.ui.Message
 import com.example.simplemessenger.ui.MessageAdapter
 import android.util.Log
 import androidx.activity.viewModels
->>>>>>> Stashed changes
+import com.example.simplemessenger.ThemeManager
+
 
 class ChatActivity : AppCompatActivity() {
     private val client = OkHttpClient()
@@ -45,24 +45,20 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var recipient: String
     private lateinit var messagesView: TextView
     private lateinit var chatFile: File
-<<<<<<< Updated upstream
 
     private val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
 
-=======
     private val viewModel: MainViewModel by viewModels()
 
     private lateinit var messagesRecyclerView: RecyclerView
     private var messageList: MutableList<Message> = mutableListOf()
     private lateinit var messageAdapter: MessageAdapter
 
-    private val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-
     companion object {
         const val ACTION_CHAT_LIST_UPDATED = "com.example.simplemessenger.ACTION_CHAT_LIST_UPDATED"
     }
 
->>>>>>> Stashed changes
+
     // Регистрация запроса разрешения
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -76,12 +72,13 @@ class ChatActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Применить сохранённую тему ДО setContentView
+        val currentTheme = ThemeManager.getCurrentTheme(this)
+        ThemeManager.applyTheme(this, currentTheme)
+        
         setContentView(R.layout.activity_chat)
-<<<<<<< Updated upstream
 
-        userName = intent.getStringExtra("userName")!!
-        recipient = intent.getStringExtra("recipient")!!
-=======
         // Safe intent extra handling
         userName = intent.getStringExtra("userName") ?: ""
         recipient = intent.getStringExtra("recipient") ?: ""
@@ -90,7 +87,7 @@ class ChatActivity : AppCompatActivity() {
             finish()
             return
         }
->>>>>>> Stashed changes
+
         title = "Чат с $recipient"
 
         val messageEdit = findViewById<EditText>(R.id.messageEdit)
@@ -130,8 +127,10 @@ class ChatActivity : AppCompatActivity() {
         val handler = android.os.Handler(mainLooper)
         val task = object : Runnable {
             override fun run() {
-                fetchMessages()
-                handler.postDelayed(this, 3000)
+                if (!isFinishing && !isDestroyed) {
+                    fetchMessages()
+                    handler.postDelayed(this, 5000) // Increased to 5 seconds
+                }
             }
         }
         handler.post(task)
@@ -230,6 +229,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun fetchMessages() {
+        Log.d("ChatActivity", "Запрос сообщений для $userName и $recipient")
         val request = Request.Builder()
             .url("$serverUrl/messages?from=$userName&to=$recipient")
             .build()
@@ -253,6 +253,24 @@ class ChatActivity : AppCompatActivity() {
                     }
                 }
                 writeLocalMessages(existing)
+
+                // --- Add sender to chat list if not present ---
+                if (arr.length() > 0) {
+                    val prefs = getSharedPreferences("simplemessenger_prefs", MODE_PRIVATE)
+                    val chatList = prefs.getStringSet("chatList", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+                    for (i in 0 until arr.length()) {
+                        val msg = arr.getJSONObject(i)
+                        val sender = msg.optString("from")
+                        if (sender.isNotEmpty() && sender != userName && !chatList.contains(sender)) {
+                            chatList.add(sender)
+                        }
+                    }
+                    prefs.edit().putStringSet("chatList", chatList).apply()
+                    // Optionally notify MainActivity to refresh UI
+                    Log.d("ChatActivity", "Отправка broadcast для обновления списка чатов")
+                    sendBroadcast(Intent(ACTION_CHAT_LIST_UPDATED))
+                }
+                // --- End add sender logic ---
 
                 val decryptedArr = decryptMessages(existing)
                 updateMessageList(decryptedArr)
@@ -294,25 +312,60 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun updateMessageList(arr: org.json.JSONArray) {
-        messageList.clear()
+        val newMessages = mutableListOf<Message>()
         for (i in 0 until arr.length()) {
             val m = arr.getJSONObject(i)
             val type = m.optString("type", "text")
             val mediaUrl = m.optString("mediaUrl", null)
-            messageList.add(
+            newMessages.add(
                 Message(
                     from = m.getString("from"),
                     text = m.optString("text", null),
                     date = m.optString("date", null),
                     type = type,
-                    mediaUrl = mediaUrl
+                    mediaUrl = mediaUrl,
+                    read = m.optBoolean("read", false)
                 )
             )
         }
-        runOnUiThread {
-            messageAdapter.notifyDataSetChanged()
-            messagesRecyclerView.scrollToPosition(messageList.size - 1)
+        
+        // Only update if there are actual changes
+        if (newMessages.size != messageList.size || hasContentChanged(newMessages)) {
+            val wasAtBottom = isAtBottom()
+            messageList.clear()
+            messageList.addAll(newMessages)
+            runOnUiThread {
+                messageAdapter.notifyDataSetChanged()
+                if (wasAtBottom) {
+                    messagesRecyclerView.scrollToPosition(messageList.size - 1)
+                }
+            }
         }
+    }
+    
+    private fun hasContentChanged(newMessages: List<Message>): Boolean {
+        if (messageList.size != newMessages.size) return true
+        for (i in messageList.indices) {
+            val oldMsg = messageList[i]
+            val newMsg = newMessages[i]
+            if (oldMsg.text != newMsg.text || 
+                oldMsg.date != newMsg.date || 
+                oldMsg.from != newMsg.from ||
+                oldMsg.type != newMsg.type ||
+                oldMsg.mediaUrl != newMsg.mediaUrl) {
+                return true
+            }
+        }
+        return false
+    }
+    
+    private fun isAtBottom(): Boolean {
+        val layoutManager = messagesRecyclerView.layoutManager as? LinearLayoutManager
+        return layoutManager?.let { manager ->
+            val lastVisibleItem = manager.findLastVisibleItemPosition()
+            val totalItemCount = manager.itemCount
+            totalItemCount > 0 && lastVisibleItem >= totalItemCount - 1
+        } ?: false
     }
 
     private fun readLocalMessages(): JSONArray {
@@ -343,6 +396,7 @@ class ChatActivity : AppCompatActivity() {
             val newMsg = JSONObject()
             newMsg.put("from", msg.optString("from", "unknown"))
             newMsg.put("date", msg.optString("date", ""))
+            newMsg.put("read", msg.optBoolean("read", false))
             if (type == "text") {
                 val encryptedText = msg.optString("text", null)
                 val decryptedText = if (encryptedText != null) {
@@ -391,6 +445,12 @@ class ChatActivity : AppCompatActivity() {
             ) return true
         }
         return false
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Cancel any pending network requests
+        client.dispatcher.cancelAll()
     }
 
     // TODO: Consider adopting ViewBinding for safer UI code

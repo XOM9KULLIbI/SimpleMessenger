@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_theme_light"
+        android:title="Светлая тема"/>
+    <item
+        android:id="@+id/action_theme_dark"
+        android:title="Тёмная тема"/>
+    <item
+        android:id="@+id/action_theme_colorful"
+        android:title="Цветная тема"/>
+</menu> 

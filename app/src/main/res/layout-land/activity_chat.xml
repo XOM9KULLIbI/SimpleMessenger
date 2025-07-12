@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/chat_bg_gradient"
+    android:fitsSystemWindows="true">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/messagesRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:padding="@dimen/spacing_small"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/inputCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#DDDDDD"
+        app:layout_constraintBottom_toTopOf="@+id/inputCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/messagesRecyclerView"/>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/inputCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_small"
+        app:cardCornerRadius="@dimen/message_card_radius"
+        app:cardElevation="@dimen/message_card_elevation"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/input_padding"
+            android:gravity="center_vertical"
+            android:minHeight="48dp">
+
+            <EditText
+                android:id="@+id/messageEdit"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minHeight="36dp"
+                android:hint="Сообщение"
+                android:background="@android:color/transparent"
+                android:textSize="@dimen/text_medium"
+                android:padding="@dimen/spacing_small"
+                android:maxLines="3"
+                android:scrollbars="vertical"
+                android:gravity="top|start"/>
+
+            <ImageButton
+                android:id="@+id/attachButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_message"
+                android:contentDescription="Прикрепить файл"
+                android:tint="@color/purple_500"
+                android:layout_marginStart="@dimen/spacing_small"
+                android:scaleType="centerInside"
+                android:padding="@dimen/spacing_small"/>
+
+            <ImageButton
+                android:id="@+id/sendButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_send"
+                android:contentDescription="Отправить"
+                android:tint="@color/purple_500"
+                android:layout_marginStart="@dimen/spacing_small"
+                android:scaleType="centerInside"
+                android:padding="@dimen/spacing_small"/>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout> 
