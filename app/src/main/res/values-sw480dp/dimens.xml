@@ -20,4 +20,10 @@
     <dimen name="text_small">12sp</dimen>
     <dimen name="text_medium">17sp</dimen>
     <dimen name="text_large">20sp</dimen>
+    
+    <!-- Адаптивные размеры для сообщений -->
+    <dimen name="message_max_width">320dp</dimen>
+    <dimen name="media_width">280dp</dimen>
+    <dimen name="media_height">210dp</dimen>
+    <dimen name="system_bar_safe_margin">34dp</dimen>
 </resources> 

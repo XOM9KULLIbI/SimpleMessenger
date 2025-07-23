@@ -3,8 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/spacing_medium"
-    android:background="@drawable/chat_bg_gradient">
+    android:paddingStart="@dimen/spacing_medium"
+    android:paddingEnd="@dimen/spacing_medium"
+    android:paddingBottom="@dimen/spacing_medium"
+    android:paddingTop="@dimen/system_bar_safe_margin"
+    android:background="@drawable/chat_bg_gradient"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:id="@+id/buttonContainer"
@@ -12,6 +16,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
+
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">

@@ -13,6 +13,8 @@
         <item name="android:textColorPrimary">#FFFFFF</item>
         <item name="android:textColorSecondary">#CCCCCC</item>
         <item name="android:windowLightStatusBar">false</item>
+        <!-- Поддержка вырезов экрана -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
     </style>
     
     <style name="Theme.SimpleMessenger.WithActionBar" parent="Theme.MaterialComponents.DayNight">
@@ -27,5 +29,8 @@
         <item name="android:navigationBarColor">#181828</item>
         <item name="android:textColorPrimary">#FFFFFF</item>
         <item name="android:textColorSecondary">#CCCCCC</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <!-- Поддержка вырезов экрана -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
     </style>
-</resources> 
+</resources>
