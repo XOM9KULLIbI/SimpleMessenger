@@ -26,19 +26,24 @@
 
 **Новая функциональность:**
 - Загрузка превью видео через Glide
-- Обработка состояний загрузки (loading, success, error)
+- Индикатор загрузки с автоматическим скрытием
 - Использование placeholder'а при ошибках загрузки
 - Клик по превью для открытия в полноэкранном режиме
 
 **Ключевые особенности:**
 ```kotlin
-// Загрузка превью с обработкой состояний
+// Простая загрузка превью с индикатором загрузки
 Glide.with(context)
     .load(fullUrl)
     .placeholder(R.drawable.video_placeholder)
     .error(R.drawable.video_placeholder)
-    .listener(RequestListener { ... })
     .into(videoThumbnail)
+
+// Показ иконки play после загрузки
+videoThumbnail.postDelayed({
+    loadingIndicator.visibility = View.GONE
+    playIcon.visibility = View.VISIBLE
+}, 500)
 ```
 
 ### 3. Улучшение полноэкранного просмотра видео

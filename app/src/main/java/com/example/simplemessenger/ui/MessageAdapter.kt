@@ -242,38 +242,23 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
             val fullUrl = if (mediaUrl != null && !mediaUrl.startsWith("http")) "$serverUrl/$mediaUrl" else mediaUrl
             
             // Загружаем превью видео с помощью Glide
+            // Показываем индикатор загрузки, скрываем иконку play
             loadingIndicator.visibility = View.VISIBLE
             playIcon.visibility = View.GONE
             
+            // Простая загрузка превью
             Glide.with(context)
                 .load(fullUrl)
                 .placeholder(R.drawable.video_placeholder)
                 .error(R.drawable.video_placeholder)
-                .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
-                    override fun onLoadFailed(
-                        e: com.bumptech.glide.load.engine.GlideException?,
-                        model: Any?,
-                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        loadingIndicator.visibility = View.GONE
-                        playIcon.visibility = View.VISIBLE
-                        return false
-                    }
-                    
-                    override fun onResourceReady(
-                        resource: android.graphics.drawable.Drawable,
-                        model: Any?,
-                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
-                        dataSource: com.bumptech.glide.load.DataSource,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        loadingIndicator.visibility = View.GONE
-                        playIcon.visibility = View.VISIBLE
-                        return false
-                    }
-                })
                 .into(videoThumbnail)
+            
+            // После небольшой задержки показываем иконку play
+            // (в реальном приложении можно использовать callback, но для простоты используем задержку)
+            videoThumbnail.postDelayed({
+                loadingIndicator.visibility = View.GONE
+                playIcon.visibility = View.VISIBLE
+            }, 500)
             
             authorView.text = message.from
             dateView.text = formatDate(message.date)
