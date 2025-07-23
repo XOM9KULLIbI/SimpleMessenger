@@ -253,7 +253,7 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
                     override fun onLoadFailed(
                         e: com.bumptech.glide.load.engine.GlideException?,
                         model: Any?,
-                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
                         isFirstResource: Boolean
                     ): Boolean {
                         loadingIndicator.visibility = View.GONE
@@ -262,10 +262,10 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
                     }
                     
                     override fun onResourceReady(
-                        resource: android.graphics.drawable.Drawable?,
+                        resource: android.graphics.drawable.Drawable,
                         model: Any?,
-                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
-                        dataSource: com.bumptech.glide.load.DataSource?,
+                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
+                        dataSource: com.bumptech.glide.load.DataSource,
                         isFirstResource: Boolean
                     ): Boolean {
                         loadingIndicator.visibility = View.GONE
