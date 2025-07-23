@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.VideoView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.simplemessenger.R
 import com.bumptech.glide.Glide
@@ -229,7 +228,9 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
     }
 
     class VideoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val videoView: VideoView = itemView.findViewById(R.id.videoMessage)
+        private val videoThumbnail: ImageView = itemView.findViewById(R.id.videoThumbnail)
+        private val playIcon: ImageView = itemView.findViewById(R.id.playIcon)
+        private val loadingIndicator: View = itemView.findViewById(R.id.loadingIndicator)
         private val authorView: TextView = itemView.findViewById(R.id.authorMessage)
         private val dateView: TextView = itemView.findViewById(R.id.dateMessage)
         private val avatarView: ImageView = itemView.findViewById(R.id.avatarView)
@@ -239,8 +240,41 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
         fun bind(message: Message, currentUser: String, context: Context, serverUrl: String) {
             val mediaUrl = message.mediaUrl
             val fullUrl = if (mediaUrl != null && !mediaUrl.startsWith("http")) "$serverUrl/$mediaUrl" else mediaUrl
-            videoView.setVideoPath(fullUrl)
-            videoView.seekTo(100)
+            
+            // Загружаем превью видео с помощью Glide
+            loadingIndicator.visibility = View.VISIBLE
+            playIcon.visibility = View.GONE
+            
+            Glide.with(context)
+                .load(fullUrl)
+                .placeholder(R.drawable.video_placeholder)
+                .error(R.drawable.video_placeholder)
+                .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                    override fun onLoadFailed(
+                        e: com.bumptech.glide.load.engine.GlideException?,
+                        model: Any?,
+                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        loadingIndicator.visibility = View.GONE
+                        playIcon.visibility = View.VISIBLE
+                        return false
+                    }
+                    
+                    override fun onResourceReady(
+                        resource: android.graphics.drawable.Drawable?,
+                        model: Any?,
+                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                        dataSource: com.bumptech.glide.load.DataSource?,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        loadingIndicator.visibility = View.GONE
+                        playIcon.visibility = View.VISIBLE
+                        return false
+                    }
+                })
+                .into(videoThumbnail)
+            
             authorView.text = message.from
             dateView.text = formatDate(message.date)
             avatarView.setImageResource(R.drawable.ic_avatar_placeholder)
@@ -254,8 +288,8 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
             } else if (readStatusView != null) {
                 readStatusView.visibility = View.GONE
             }
-            // Открытие в полноэкранном режиме
-            videoView.setOnClickListener {
+            // Открытие в полноэкранном режиме при клике на превью
+            videoThumbnail.setOnClickListener {
                 val intent = android.content.Intent(context, com.example.simplemessenger.FullscreenMediaActivity::class.java)
                 intent.putExtra("media_url", fullUrl)
                 intent.putExtra("media_type", "video")

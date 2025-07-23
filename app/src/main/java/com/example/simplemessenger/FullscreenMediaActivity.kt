@@ -41,7 +41,20 @@ class FullscreenMediaActivity : AppCompatActivity() {
             imageView.visibility = ImageView.GONE
             videoView.visibility = VideoView.VISIBLE
             videoView.setVideoURI(Uri.parse(mediaUrl))
-            videoView.setOnPreparedListener { it.isLooping = true; videoView.start() }
+            videoView.setOnPreparedListener { mediaPlayer ->
+                // Показываем стандартные элементы управления видео
+                val mediaController = android.widget.MediaController(this)
+                mediaController.setAnchorView(videoView)
+                videoView.setMediaController(mediaController)
+                mediaPlayer.isLooping = false
+                videoView.requestFocus()
+                videoView.start()
+            }
+            // Обработка ошибок
+            videoView.setOnErrorListener { _, what, extra ->
+                Toast.makeText(this, "Ошибка воспроизведения видео", Toast.LENGTH_SHORT).show()
+                false
+            }
         }
 
         downloadButton.setOnClickListener {

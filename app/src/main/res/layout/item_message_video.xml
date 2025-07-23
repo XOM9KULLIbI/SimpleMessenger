@@ -39,13 +39,35 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
-                <VideoView
-                    android:id="@+id/videoMessage"
+                <ImageView
+                    android:id="@+id/videoThumbnail"
                     android:layout_width="@dimen/media_width"
                     android:layout_height="@dimen/media_height"
-                    android:background="#E0E0E0"
+                    android:scaleType="centerCrop"
+                    android:adjustViewBounds="true"
+                    android:background="@drawable/image_rounded_bg"
                     android:clickable="true"
                     android:focusable="true"/>
+
+                <ProgressBar
+                    android:id="@+id/loadingIndicator"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_centerInParent="true"
+                    android:visibility="visible"/>
+
+                <ImageView
+                    android:id="@+id/playIcon"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_centerInParent="true"
+                    android:src="@android:drawable/ic_media_play"
+                    android:background="@drawable/play_button_bg"
+                    android:padding="16dp"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:alpha="0.8"
+                    android:visibility="gone"/>
 
                 <ImageButton
                     android:id="@+id/downloadVideoButton"
@@ -57,17 +79,6 @@
                     android:background="@android:color/transparent"
                     android:src="@android:drawable/stat_sys_download"
                     android:contentDescription="Скачать видео"/>
-
-                <TextView
-                    android:id="@+id/readStatusView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="12sp"
-                    android:textColor="@color/message_status"
-                    android:layout_alignParentBottom="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_margin="8dp"
-                    android:visibility="gone"/>
             </RelativeLayout>
 
             <LinearLayout
@@ -87,12 +98,28 @@
                     android:textSize="@dimen/text_small"
                     android:textColor="@color/message_author"/>
 
-                <TextView
-                    android:id="@+id/dateMessage"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="@dimen/text_small"
-                    android:textColor="@color/message_date"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/dateMessage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/text_small"
+                        android:textColor="@color/message_date"
+                        android:layout_marginEnd="@dimen/spacing_small"/>
+
+                    <TextView
+                        android:id="@+id/readStatusView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:textColor="@color/message_status"
+                        android:visibility="gone"/>
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
