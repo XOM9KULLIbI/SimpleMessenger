@@ -25,4 +25,5 @@
     <dimen name="message_max_width">240dp</dimen>
     <dimen name="media_width">200dp</dimen>
     <dimen name="media_height">150dp</dimen>
+    <dimen name="system_bar_safe_margin">14dp</dimen>
 </resources> 
