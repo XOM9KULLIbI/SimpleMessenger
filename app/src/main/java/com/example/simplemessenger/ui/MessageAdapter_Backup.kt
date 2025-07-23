@@ -120,7 +120,6 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
         private val avatarInitials: TextView = itemView.findViewById(R.id.avatarInitials)
         private val messageCard: View = itemView.findViewById(R.id.messageCard)
         private val readStatusView: TextView? = itemView.findViewById(R.id.readStatusView)
-        
         fun bind(message: Message, currentUser: String, context: Context) {
             textView.text = message.text
             authorView.text = message.from
@@ -141,7 +140,6 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
                 readStatusView.visibility = View.GONE
             }
         }
-        
         private fun formatDate(dateStr: String?): String {
             if (dateStr.isNullOrEmpty()) return ""
             val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm")
@@ -175,7 +173,6 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
         private val messageCard: View = itemView.findViewById(R.id.messageCard)
         private val downloadButton: ImageView = itemView.findViewById(R.id.downloadImageButton)
         private val readStatusView: TextView? = itemView.findViewById(R.id.readStatusView)
-        
         fun bind(message: Message, currentUser: String, context: Context, serverUrl: String) {
             val mediaUrl = message.mediaUrl
             val fullUrl = if (mediaUrl != null && !mediaUrl.startsWith("http")) "$serverUrl/$mediaUrl" else mediaUrl
@@ -205,7 +202,6 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
                 MediaDownloadHelper.downloadFile(context, fullUrl, "image")
             }
         }
-        
         private fun formatDate(dateStr: String?): String {
             if (dateStr.isNullOrEmpty()) return ""
             val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm")
@@ -241,16 +237,16 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
         private val messageCard: View = itemView.findViewById(R.id.messageCard)
         private val downloadButton: ImageView = itemView.findViewById(R.id.downloadVideoButton)
         private val readStatusView: TextView? = itemView.findViewById(R.id.readStatusView)
-        
         fun bind(message: Message, currentUser: String, context: Context, serverUrl: String) {
             val mediaUrl = message.mediaUrl
             val fullUrl = if (mediaUrl != null && !mediaUrl.startsWith("http")) "$serverUrl/$mediaUrl" else mediaUrl
             
+            // Загружаем превью видео с помощью Glide
             // Показываем индикатор загрузки, скрываем иконку play
             loadingIndicator.visibility = View.VISIBLE
             playIcon.visibility = View.GONE
             
-            // Простая загрузка превью без RequestListener
+            // Простая загрузка превью
             Glide.with(context)
                 .load(fullUrl)
                 .placeholder(R.drawable.video_placeholder)
@@ -258,6 +254,7 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
                 .into(videoThumbnail)
             
             // После небольшой задержки показываем иконку play
+            // (в реальном приложении можно использовать callback, но для простоты используем задержку)
             videoThumbnail.postDelayed({
                 loadingIndicator.visibility = View.GONE
                 playIcon.visibility = View.VISIBLE
@@ -269,7 +266,6 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
             val isSent = message.from == currentUser
             val bgColor = if (isSent) R.color.message_sent_bg else R.color.message_received_bg
             messageCard.setBackgroundTintList(ContextCompat.getColorStateList(context, bgColor))
-            
             // Галочки
             if (isSent && readStatusView != null) {
                 readStatusView.visibility = View.VISIBLE
@@ -277,7 +273,6 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
             } else if (readStatusView != null) {
                 readStatusView.visibility = View.GONE
             }
-            
             // Открытие в полноэкранном режиме при клике на превью
             videoThumbnail.setOnClickListener {
                 val intent = android.content.Intent(context, com.example.simplemessenger.FullscreenMediaActivity::class.java)
@@ -285,13 +280,11 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
                 intent.putExtra("media_type", "video")
                 context.startActivity(intent)
             }
-            
             // Скачивание
             downloadButton.setOnClickListener {
                 MediaDownloadHelper.downloadFile(context, fullUrl, "video")
             }
         }
-        
         private fun formatDate(dateStr: String?): String {
             if (dateStr.isNullOrEmpty()) return ""
             val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm")
@@ -316,4 +309,4 @@ class MessageAdapter(private val context: Context, private val messages: List<Me
             }
         }
     }
-}
+} 
