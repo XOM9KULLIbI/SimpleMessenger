@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Увеличенные отступы для устройств с вырезами (API 28+) -->
+    <dimen name="system_bar_safe_margin">48dp</dimen>
+</resources>
