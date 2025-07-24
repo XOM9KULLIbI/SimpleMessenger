@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+/api/key.env
+/api/db_settings.env
+*.pyc
