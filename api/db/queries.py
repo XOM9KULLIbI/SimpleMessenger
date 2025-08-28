@@ -1,15 +1,15 @@
 import asyncio
 from datetime import datetime
-from fastapi import UploadFile, HTTPException
-from sqlalchemy import select, or_, and_, update
+from fastapi import UploadFile
+from sqlalchemy import select, or_, and_, update, func
 from sqlalchemy.exc import IntegrityError, DataError
-from sqlalchemy.orm import joinedload
 
+from api.schemas.chat_schema import Chat
 from api.schemas.file_schema import MAX_FILE_SIZE
 from api.schemas.message_schema import MessageInDb, Message
 from api.db.connect import async_session_factory, Base, engine
-from api.db.models import DbMessage, DbUser, DbFile
-from api.schemas.user_schemas import User, UserInDb
+from api.db.models import DbMessage, DbUser, DbFile, DbChat, DbChatMember
+from api.schemas.user_schemas import UserInDb
 
 
 
@@ -43,8 +43,24 @@ class ORM:
                 raise ValueError(f"Неожиданная ошибка: {str(e)}")
 
     @staticmethod
+    async def get_chat_member(chat_id, user_id):
+        async with async_session_factory() as session:
+            try:
+                member_id = await session.scalar(
+                    select(DbChatMember.user_id).where(DbChatMember.chat_id == chat_id, DbChatMember.user_id != user_id)
+                )
+                return member_id
+            except IntegrityError as e:
+                raise ValueError(f"Ошибка целостности данных: {str(e)}")
+            except DataError as e:
+                raise ValueError(f"Ошибка типа данных: {str(e)}")
+            except Exception as e:
+                raise ValueError(f"Неожиданная ошибка: {str(e)}")
+
+    @staticmethod
     async def send_message(message: Message) -> MessageInDb:
         async with async_session_factory() as session:
+
             obj = DbMessage(**message.model_dump())
             try:
                 session.add(obj)
@@ -64,20 +80,26 @@ class ORM:
                 raise ValueError(f"Неожиданная ошибка: {str(e)}")
 
     @staticmethod
-    async def get_dialog(sender_id, receiver_id) -> list[MessageInDb]:
+    async def get_chat(sender_id, chat_id) -> list[MessageInDb]:
         async with async_session_factory() as session:
             try:
-                where_condition = and_(
-                    or_(
-                        and_(DbMessage.sender_id == sender_id, DbMessage.receiver_id == receiver_id),
-                        and_(DbMessage.sender_id == receiver_id, DbMessage.receiver_id == sender_id)
-                    ),
-                    DbMessage.deleted == False
+                is_member = await session.scalar(
+                    select(func.count())
+                    .select_from(DbChatMember)
+                    .where(
+                        DbChatMember.chat_id == chat_id,
+                        DbChatMember.user_id == sender_id
+                    )
                 )
+                if not is_member:
+                    raise PermissionError("Пользователь не является участником этого чата")
 
                 stmt = (
                     select(DbMessage)
-                    .where(where_condition)
+                    .where(
+                        DbMessage.chat_id == chat_id,
+                        DbMessage.deleted == False
+                    )
                     # .options(joinedload(DbMessage.file))
                     .order_by(DbMessage.timestamp, DbMessage.message_id)
                 )
@@ -93,17 +115,23 @@ class ORM:
                 raise ValueError(f"Неожиданная ошибка: {str(e)}")
 
     @staticmethod
-    async def mark_read(sender_id, receiver_id):
+    async def mark_read(sender_id, chat_id):
         async with async_session_factory() as session:
             try:
-                read_at = datetime.now()
-                result = await session.execute(
-                    update(DbMessage).where(
-                        (
-                            (DbMessage.sender_id == receiver_id) & (DbMessage.receiver_id == sender_id) & (DbMessage.read == False)
-                        )
-                    ).values(read= True, read_at=read_at)
+                is_member = await session.scalar(
+                    select(func.count())
+                    .select_from(DbChatMember)
+                    .where(
+                        DbChatMember.chat_id == chat_id,
+                        DbChatMember.user_id == sender_id
+                    )
                 )
+                if not is_member:
+                    raise PermissionError("Пользователь не является участником этого чата")
+                read_at = datetime.now()
+                stmt = update(DbMessage).where(DbMessage.chat_id == chat_id, DbMessage.receiver_id == sender_id).values(
+                    read_at=read_at, read=True)
+                result = await session.execute(stmt)
                 marked_count = result.rowcount
                 await session.commit()
                 return {"marked_count": marked_count, "read_at": read_at}
@@ -121,7 +149,7 @@ class ORM:
     async def get_user_by_username(username: str) -> dict:
         async with async_session_factory() as session:
             try:
-                stmt = select(DbUser.user_id, DbUser.username, DbUser.hashed_password, DbUser.is_disabled).where(DbUser.username == username)
+                stmt = select(DbUser.user_id, DbUser.username, DbUser.hashed_password, DbUser.is_disabled, DbUser.avatar_file_id).where(DbUser.username == username)
                 result = await session.execute(stmt)
                 return result.mappings().first()
             except IntegrityError as e:
@@ -167,6 +195,66 @@ class ORM:
                 raise ValueError(f"Ошибка типа данных: {str(e)}")
             except Exception as e:
                 raise ValueError(f"Неожиданная ошибка: {str(e)}")
+
+    @staticmethod
+    async def get_user_by_user_id(user_id):
+        async with async_session_factory() as session:
+            try:
+                stmt = select(DbUser.user_id, DbUser.username, DbUser.is_disabled, DbUser.avatar_file_id
+                              ).where(DbUser.user_id == user_id)
+                result = await session.execute(stmt)
+                return result.mappings().first()
+
+            except IntegrityError as e:
+                raise ValueError(f"Ошибка целостности данных: {str(e)}")
+            except DataError as e:
+                raise ValueError(f"Ошибка типа данных: {str(e)}")
+            except Exception as e:
+                raise ValueError(f"Неожиданная ошибка: {str(e)}")
+
+    @staticmethod
+    async def create_direct_chat(sender_id: int, receiver_id: int) -> Chat:
+        if sender_id == receiver_id:
+            raise ValueError("Direct chat requires two different users")
+
+        async with async_session_factory() as session:
+            async with session.begin():
+                users_rows = await session.execute(
+                    select(DbUser.user_id).where(DbUser.user_id.in_([sender_id, receiver_id]))
+                )
+                users_found = {row[0] for row in users_rows}
+                if len(users_found) != 2:
+                    raise ValueError("One or both users do not exist")
+
+                existing_chat_id = await session.scalar(
+                    select(DbChat.chat_id)
+                    .join(DbChatMember, DbChatMember.chat_id == DbChat.chat_id)
+                    .where(
+                        DbChat.is_group == False,
+                        DbChatMember.user_id.in_([sender_id, receiver_id]),
+                    )
+                    .group_by(DbChat.chat_id)
+                    .having(func.count(DbChatMember.user_id) == 2)
+                    .limit(1)
+                )
+                if existing_chat_id:
+                    existing_chat = await session.get(DbChat, existing_chat_id)
+                    return existing_chat
+
+                new_chat = DbChat(is_group=False, created_at=datetime.now())
+
+                session.add(new_chat)
+                await session.flush()
+                chat_model = Chat.model_validate(new_chat)
+                session.add_all([
+                    DbChatMember(chat_id=new_chat.chat_id, user_id=sender_id),
+                    DbChatMember(chat_id=new_chat.chat_id, user_id=receiver_id),
+                ])
+
+                await session.refresh(new_chat)
+                return chat_model
+
+
 
 
 async def create():

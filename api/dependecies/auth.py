@@ -16,7 +16,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 30
-oauth2_schema = OAuth2PasswordBearer(tokenUrl="/token")
+oauth2_schema = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -58,9 +58,9 @@ def verify_access_token(token: str) -> str:
         if username is None:
             raise credentials_exception
         return username
-    except ExpiredSignatureError as e:
+    except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
-    except InvalidTokenError as e:
+    except InvalidTokenError:
         raise credentials_exception
 
 def verify_refresh_token(token:str) -> str:
@@ -71,9 +71,9 @@ def verify_refresh_token(token:str) -> str:
         if username is None or token_type != "refresh":
             raise credentials_exception
         return username
-    except ExpiredSignatureError as e:
+    except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
-    except InvalidTokenError as e:
+    except InvalidTokenError:
         raise credentials_exception
 
 async def get_current_user(token: str = Depends(oauth2_schema)) -> User:
