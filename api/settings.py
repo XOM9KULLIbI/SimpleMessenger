@@ -15,7 +15,7 @@ class DbSettings(BaseSettings):
     def db_url(self):
         return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
 
-    model_config = SettingsConfigDict(env_file=BASE_DIR / 'db_settings.env')
+    model_config = SettingsConfigDict(env_file=BASE_DIR / 'db_set_new.env')
 
 
 db_settings = DbSettings()

@@ -3,7 +3,7 @@ import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from api.routers.main import router
+from routers.main import router
 app = FastAPI(
     title="SimpleMessenger API",
     description="API для мессенджера",
