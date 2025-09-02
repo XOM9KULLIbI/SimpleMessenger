@@ -4,12 +4,12 @@ from fastapi import UploadFile
 from sqlalchemy import select, or_, and_, update, func
 from sqlalchemy.exc import IntegrityError, DataError
 
-from api.schemas.chat_schema import Chat
-from api.schemas.file_schema import MAX_FILE_SIZE
-from api.schemas.message_schema import MessageInDb, Message
-from api.db.connect import async_session_factory, Base, engine
-from api.db.models import DbMessage, DbUser, DbFile, DbChat, DbChatMember
-from api.schemas.user_schemas import UserInDb
+from schemas.chat_schema import Chat
+from schemas.file_schema import MAX_FILE_SIZE
+from schemas.message_schema import MessageInDb, Message
+from db.connect import async_session_factory, Base, engine
+from db.models import DbMessage, DbUser, DbFile, DbChat, DbChatMember
+from schemas.user_schemas import UserInDb
 
 
 

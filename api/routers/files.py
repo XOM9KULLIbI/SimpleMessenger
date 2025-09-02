@@ -7,10 +7,10 @@ from pydantic import PositiveInt
 from starlette import status
 from starlette.responses import StreamingResponse
 
-from api.db.queries import ORM
-from api.dependecies.auth import get_current_active_user
-from api.schemas.file_schema import FileMeta
-from api.schemas.user_schemas import User
+from db.queries import ORM
+from dependecies.auth import get_current_active_user
+from schemas.file_schema import FileMeta
+from schemas.user_schemas import User
 
 files_router = APIRouter(prefix="/files", tags=["files"])
 

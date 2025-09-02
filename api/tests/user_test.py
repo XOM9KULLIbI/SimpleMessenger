@@ -1,6 +1,6 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
-from api.main import app
+from main import app
 
 @pytest.mark.anyio
 async def test_register_user():

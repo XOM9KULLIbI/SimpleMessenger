@@ -4,9 +4,9 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import PositiveInt
 from starlette import status
 
-from api.db.queries import ORM
-from api.dependecies.auth import get_password_hashed, get_current_active_user
-from api.schemas.user_schemas import UserCreate, RegisterUser, User
+from db.queries import ORM
+from dependecies.auth import get_password_hashed, get_current_active_user
+from schemas.user_schemas import UserCreate, RegisterUser, User
 
 user_router = APIRouter(prefix="/users", tags=["users"])
 

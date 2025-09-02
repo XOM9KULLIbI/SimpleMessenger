@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
-from api.settings import db_settings
+from settings import db_settings
 import asyncpg
 
 

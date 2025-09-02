@@ -4,10 +4,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from pydantic import PositiveInt
 
-from api.db.queries import ORM
-from api.dependecies.auth import get_current_active_user
-from api.schemas.message_schema import CreateMessage, Message, MessageInDb
-from api.schemas.user_schemas import User
+from db.queries import ORM
+from dependecies.auth import get_current_active_user
+from schemas.message_schema import CreateMessage, Message, MessageInDb
+from schemas.user_schemas import User
 
 chat_router = APIRouter(prefix="/chats", tags=["chats"])
 

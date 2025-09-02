@@ -6,9 +6,9 @@ from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext
 import jwt
 from starlette import status
-from api.db.queries import ORM
-from api.schemas.user_schemas import User
-from api.settings import key
+from db.queries import ORM
+from schemas.user_schemas import User
+from settings import key
 import logging
 
 SECRET_KEY = key
