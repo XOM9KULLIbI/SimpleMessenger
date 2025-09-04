@@ -15,4 +15,6 @@
 local.properties
 /api/key.env
 /api/db_settings.env
+/api/db_set_new.env
 *.pyc
+*.env
