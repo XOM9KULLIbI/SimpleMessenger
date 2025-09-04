@@ -28,3 +28,9 @@ class RegisterUser(BaseModel):
 
 class UserInDb(User):
     hashed_password: str
+
+class UserOut(BaseModel):
+    user_id: PositiveInt
+    username: str
+    avatar_file_id: PositiveInt | None = None
+    last_seen: datetime = datetime.now()

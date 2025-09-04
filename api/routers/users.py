@@ -10,7 +10,7 @@ from schemas.user_schemas import UserCreate, RegisterUser, User
 
 user_router = APIRouter(prefix="/users", tags=["users"])
 
-@user_router.post("/")
+@user_router.post("/", response_model=User)
 async def register_user(user: UserCreate):
     existing_user = await ORM.get_user_by_username(user.username)
     if existing_user:
@@ -18,7 +18,7 @@ async def register_user(user: UserCreate):
     hashed_password = get_password_hashed(user.password)
     user_data = RegisterUser(**user.model_dump(), hashed_password=hashed_password).model_dump()
     created_user = await ORM.register_user(user_data)
-    return created_user
+    return User.model_validate(created_user)
 
 @user_router.get("/me")
 async def get_my_user_info(user: Annotated[User, Depends(get_current_active_user)]):

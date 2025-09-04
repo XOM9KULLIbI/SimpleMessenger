@@ -80,7 +80,7 @@ class ORM:
                 raise ValueError(f"Неожиданная ошибка: {str(e)}")
 
     @staticmethod
-    async def get_chat(sender_id, chat_id) -> list[MessageInDb]:
+    async def get_chat(sender_id, chat_id, offset, limit) -> list[MessageInDb]:
         async with async_session_factory() as session:
             try:
                 is_member = await session.scalar(
@@ -100,8 +100,9 @@ class ORM:
                         DbMessage.chat_id == chat_id,
                         DbMessage.deleted == False
                     )
-                    # .options(joinedload(DbMessage.file))
-                    .order_by(DbMessage.timestamp, DbMessage.message_id)
+                    .offset(offset)
+                    .limit(limit)
+                    .order_by(DbMessage.timestamp.desc(), DbMessage.message_id.desc())
                 )
 
                 result = await session.execute(stmt)

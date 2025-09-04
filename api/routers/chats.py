@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
-from pydantic import PositiveInt
+from fastapi import APIRouter, Depends, Query
+from pydantic import PositiveInt, NonNegativeInt
 
 from db.queries import ORM
 from dependecies.auth import get_current_active_user
@@ -21,8 +21,10 @@ async def send_message(chat_id: PositiveInt, message: CreateMessage, current_use
     return result
 
 @chat_router.get("/{chat_id}")
-async def get_chat(chat_id: PositiveInt, current_user: Annotated[User, Depends(get_current_active_user)]) -> list[MessageInDb]:
-    messages = await ORM.get_chat(current_user.user_id, chat_id)
+async def get_chat(current_user: Annotated[User, Depends(get_current_active_user)],
+                   chat_id: PositiveInt, offset: NonNegativeInt = 0, limit: PositiveInt = Query(default=30, ge=0, le=100),
+                   ) -> list[MessageInDb]:
+    messages = await ORM.get_chat(current_user.user_id, chat_id, offset, limit)
     message_array = []
     for message in messages:
         message_array.append(MessageInDb.model_validate(message))
