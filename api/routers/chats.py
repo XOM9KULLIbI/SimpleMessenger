@@ -45,3 +45,9 @@ async def clear_chats(user: Annotated[User, Depends(get_current_active_user)]) :
 async def create_direct_chat(user: Annotated[User, Depends(get_current_active_user)], user_id: PositiveInt):
     new_chat = await ORM.create_direct_chat(user.user_id, user_id)
     return new_chat
+
+@chat_router.get("/")
+async def get_my_chats(user: Annotated[User, Depends(get_current_active_user)],
+                       offset: NonNegativeInt = 0, limit: NonNegativeInt = 15):
+    my_chats = await ORM.get_my_chats(user.user_id, offset, limit)
+    return my_chats

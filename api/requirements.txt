@@ -14,3 +14,4 @@ httpx==0.28.1
 pytest==8.4.1
 pytest==8.4.1
 alembic== 1.16.5
+poetry==2.1.4

@@ -70,7 +70,7 @@ class DbChat(Base):
     is_group: Mapped[bool] = mapped_column(Boolean(), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
 
-    members: Mapped[list["DbChatMember"]] = relationship("DbChatMember", back_populates="chat")
+    members: Mapped[list["DbChatMember"]] = relationship("DbChatMember", back_populates="chat", lazy="raise")
 
 class MemberRole(enum.Enum):
     member = "member"

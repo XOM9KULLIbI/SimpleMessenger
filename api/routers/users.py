@@ -6,7 +6,7 @@ from starlette import status
 
 from db.queries import ORM
 from dependecies.auth import get_password_hashed, get_current_active_user
-from schemas.user_schemas import UserCreate, RegisterUser, User
+from schemas.user_schemas import UserCreate, RegisterUser, User, UserOut
 
 user_router = APIRouter(prefix="/users", tags=["users"])
 
@@ -24,7 +24,13 @@ async def register_user(user: UserCreate):
 async def get_my_user_info(user: Annotated[User, Depends(get_current_active_user)]):
     return user
 
+@user_router.get("/search")
+async def get_user_by_username(current_user: Annotated[User, Depends(get_current_active_user)], username: str) -> UserOut:
+    user = await ORM.get_user_by_username(username)
+    return UserOut.model_validate(user)
+
 @user_router.get("/{user_id}")
 async def get_user_info(user_id: PositiveInt, current_user: Annotated[User, Depends(get_current_active_user)]):
     user_data = await ORM.get_user_by_user_id(user_id)
     return User(**user_data)
+

@@ -255,6 +255,32 @@ class ORM:
                 await session.refresh(new_chat)
                 return chat_model
 
+    @staticmethod
+    async def get_my_chats(user_id, offset: int = 0, limit: int = 15) -> list[Chat]:
+        async with async_session_factory() as session:
+            try:
+                stmt = (
+                    select(DbChat)
+                    .join(DbChatMember)
+                    .where(DbChatMember.user_id == user_id)
+                    .offset(offset)
+                    .limit(limit)
+                    .order_by(DbChat.created_at.desc())
+                )
+
+                result = await session.execute(stmt)
+                chats = result.scalars().unique().all()
+
+                chat_models = [Chat.model_validate(chat) for chat in chats]
+                return chat_models
+
+            except IntegrityError as e:
+                raise ValueError(f"Ошибка целостности данных: {str(e)}")
+            except DataError as e:
+                raise ValueError(f"Ошибка типа данных: {str(e)}")
+            except Exception as e:
+                raise ValueError(f"Неожиданная ошибка: {str(e)}")
+
 
 
 
